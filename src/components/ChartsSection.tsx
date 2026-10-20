@@ -3,6 +3,7 @@ import {
   TrendingDown,
   Layers,
   GitCompare,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -95,19 +96,34 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     );
   }
 
-  const targetTemp = activeResult.params.customTargetTemp ?? 30;
+  // --- パラメータが 0 以下かどうかのチェック ---
+  const p = activeResult.params;
+  const isRotaryMode = (p.chillerType || 'rotary') === 'rotary';
+
+  const invalidParamsList: string[] = [];
+  if (p.Soup_mass <= 0) invalidParamsList.push('スープ量');
+  if (p.TapFlow <= 0) invalidParamsList.push('水道流量');
+  if (p.Pot_D_mm <= 0) invalidParamsList.push('寸胴径');
+  if ((p.Pot_H_mm ?? 0) <= 0) invalidParamsList.push('寸胴高さ');
+  if (isRotaryMode) {
+    if (p.Ex_D_mm <= 0) invalidParamsList.push('伝熱管 径');
+    if (p.Ex_L_mm <= 0) invalidParamsList.push('伝熱管 有効長');
+  }
+
+  const hasInvalidParams = invalidParamsList.length > 0;
+
+  const targetTemp = p.customTargetTemp ?? 30;
   const timeToTarget = activeResult.timeToTarget;
   const waterAtTarget =
-    timeToTarget !== null ? Math.round(activeResult.params.TapFlow * timeToTarget) : null;
+    timeToTarget !== null ? Math.round(p.TapFlow * timeToTarget) : null;
 
-  const p = activeResult.params;
   const paramsFingerprint = `${activeResult.id}_${targetTemp}_${timeToTarget}_${waterAtTarget}_${p.RPM}_${p.TapFlow}_${p.TapTemp}_${p.Soup_mass}_${p.StartTemp}_${p.Brix}_${p.Ex_D_mm}_${p.Ex_L_mm}_${p.Pot_D_mm}_${p.Pot_H_mm}_${p.chillerType}_${p.RoomTemp}_${p.RoomRH}`;
 
   const defaultMaxTime = 120;
-  const isFixTime = !!(activeResult.params.fixTimeAxis || activeResult.params.fixTimeAxisMax);
-  const timeMinVal = isFixTime ? Math.max(0, activeResult.params.fixedTimeMin ?? 0) : 0;
+  const isFixTime = !!(p.fixTimeAxis || p.fixTimeAxisMax);
+  const timeMinVal = isFixTime ? Math.max(0, p.fixedTimeMin ?? 0) : 0;
   const timeMaxVal = isFixTime
-    ? Math.max(timeMinVal + 1, activeResult.params.fixedTimeMax ?? activeResult.params.fixedTimeAxisValue ?? defaultMaxTime)
+    ? Math.max(timeMinVal + 1, p.fixedTimeMax ?? p.fixedTimeAxisValue ?? defaultMaxTime)
     : Math.max(defaultMaxTime, Math.ceil(activeResult.totalTimeMin));
 
   const timeLabels = Array.from(
@@ -117,7 +133,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
 
   const interpolateFromSeries = (t: number, key: 'soupTemp' | 'tapOut' | 'qCool' | 'qEvap' | 'qConv'): number | null => {
     const series = activeResult.timeSeries;
-    if (series.length === 0) return null;
+    if (!series || series.length === 0) return null;
     if (t <= series[0].timeMin) return series[0][key];
     if (t >= series[series.length - 1].timeMin) return series[series.length - 1][key];
 
@@ -143,22 +159,21 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     return val !== null ? Number(val.toFixed(2)) : null;
   });
 
-  const tapInData = timeLabels.map(() => activeResult.params.TapTemp);
+  const tapInData = timeLabels.map(() => p.TapTemp);
 
   const waterUsageData = timeLabels.map((tStr) => {
     const t = parseFloat(tStr);
-    return Number((activeResult.params.TapFlow * t).toFixed(1));
+    return Number((p.TapFlow * t).toFixed(1));
   });
 
-  const isFixTemp = !!activeResult.params.fixTempAxis;
-  const tempMinVal = isFixTemp ? activeResult.params.fixedTempMin ?? 10 : 0;
-  const tempMaxVal = isFixTemp ? activeResult.params.fixedTempMax ?? 95 : undefined;
+  const isFixTemp = !!p.fixTempAxis;
+  const tempMinVal = isFixTemp ? p.fixedTempMin ?? 10 : 0;
+  const tempMaxVal = isFixTemp ? p.fixedTempMax ?? 95 : undefined;
 
-  const isFixWater = !!activeResult.params.fixWaterAxis;
-  const waterMinVal = isFixWater ? activeResult.params.fixedWaterMin ?? 0 : 0;
-  const waterMaxVal = isFixWater ? activeResult.params.fixedWaterMax ?? 500 : undefined;
+  const isFixWater = !!p.fixWaterAxis;
+  const waterMinVal = isFixWater ? p.fixedWaterMin ?? 0 : 0;
+  const waterMaxVal = isFixWater ? p.fixedWaterMax ?? 500 : undefined;
 
-  // 時間ラベルのステップ（刻み幅）決定ヘルパー
   const getStepInterval = (maxTime: number) => {
     if (isMobile) {
       if (maxTime > 300) return 60;
@@ -506,7 +521,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
 
   const threeModesMaxTime = isFixTime
     ? timeMaxVal
-    : Math.max(defaultMaxTime, activeResult.params.maxTimeMin || 120);
+    : Math.max(defaultMaxTime, p.maxTimeMin || 120);
 
   const threeModesLabels = Array.from(
     { length: Math.max(1, Math.ceil(threeModesMaxTime) - timeMinVal + 1) },
@@ -560,8 +575,8 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
       };
     }),
     {
-      label: `水温 (${activeResult.params.TapTemp}℃)`,
-      data: threeModesLabels.map(() => activeResult.params.TapTemp),
+      label: `水温 (${p.TapTemp}℃)`,
+      data: threeModesLabels.map(() => p.TapTemp),
       borderColor: '#06b6d4',
       borderWidth: 1.8,
       borderDash: [4, 4],
@@ -604,7 +619,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
       ctx.textAlign = 'left';
       ctx.fillText(`目標 ${targetTemp}℃`, chartArea.left + 6, yPixel - 6);
 
-      const tapTemp = activeResult.params.TapTemp;
+      const tapTemp = p.TapTemp;
       const yTapPixel = yScale.getPixelForValue(tapTemp);
       if (yTapPixel >= chartArea.top && yTapPixel <= chartArea.bottom) {
         ctx.fillStyle = '#0891b2';
@@ -720,7 +735,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           rotaryTemp: rT,
           coilTemp: cT,
           sinkTemp: sT,
-          tapIn: activeResult.params.TapTemp,
+          tapIn: p.TapTemp,
         });
       }
     },
@@ -975,6 +990,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         </div>
       )}
 
+      {/* グラフCanvas表示領域 (エラー時はCanvas部分のみメッセージ表示) */}
       <div
         className={`p-2 sm:p-2.5 relative flex-1 ${
           compact
@@ -982,28 +998,52 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
             : 'min-h-[460px] h-full flex-1'
         }`}
       >
-        {activeTab === 'cooling' && (
-          <Line
-            key={`cooling_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${isFixWater}_${timeMaxVal}_${tempMaxVal}_${waterMaxVal}_${isMobile}`}
-            data={coolingChartData}
-            options={coolingOptions}
-            plugins={[targetLinePlugin]}
-          />
-        )}
-        {activeTab === 'threeModes' && (
-          <Line
-            key={`threeModes_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${threeModesMaxTime}_${isMobile}`}
-            data={threeModesChartData}
-            options={threeModesOptions}
-            plugins={[threeModesPlugin]}
-          />
-        )}
-        {activeTab === 'compare' && (
-          <Line
-            key={`compare_${compareList.length}_${isFixTime}_${isFixTemp}_${isMobile}`}
-            data={compareChartData}
-            options={compareOptions}
-          />
+        {hasInvalidParams ? (
+          <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-slate-50/50 rounded-lg border border-dashed border-red-200">
+            <AlertTriangle className="w-8 h-8 text-red-500 mb-2" />
+            <h4 className="text-xs sm:text-sm font-bold text-slate-800 mb-1">
+              条件設定エラー (正の数値を入力してください)
+            </h4>
+            <p className="text-[11px] text-red-600 font-semibold mb-2">
+              以下の項目が 0 以下になっているためグラフを描画できません：
+            </p>
+            <div className="flex flex-wrap justify-center gap-1">
+              {invalidParamsList.map((item) => (
+                <span
+                  key={item}
+                  className="bg-red-100 text-red-800 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded"
+                >
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            {activeTab === 'cooling' && (
+              <Line
+                key={`cooling_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${isFixWater}_${timeMaxVal}_${tempMaxVal}_${waterMaxVal}_${isMobile}`}
+                data={coolingChartData}
+                options={coolingOptions}
+                plugins={[targetLinePlugin]}
+              />
+            )}
+            {activeTab === 'threeModes' && (
+              <Line
+                key={`threeModes_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${threeModesMaxTime}_${isMobile}`}
+                data={threeModesChartData}
+                options={threeModesOptions}
+                plugins={[threeModesPlugin]}
+              />
+            )}
+            {activeTab === 'compare' && (
+              <Line
+                key={`compare_${compareList.length}_${isFixTime}_${isFixTemp}_${isMobile}`}
+                data={compareChartData}
+                options={compareOptions}
+              />
+            )}
+          </>
         )}
       </div>
 
