@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   TrendingDown,
   Layers,
@@ -54,12 +54,19 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
   hideTabs = false,
   hideHoverReadout = false,
 }) => {
-  // タブ順: 冷却曲線 -> 3方式比較 -> 多ケース比較
   const [activeTab, setActiveTab] = useState<'cooling' | 'threeModes' | 'compare'>(
     initialTab
   );
 
-  // マウスホバー等で読み取ったプロット情報をグラフ下部の欄に表示するState（全タブ連動）
+  // モバイル画面（画面幅 640px 未満）の判定フック
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 640);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const [coolingHover, setCoolingHover] = useState<{
     timeMin: number;
     soupTemp: number | null;
@@ -88,17 +95,14 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     );
   }
 
-  // 目標温度と到達データ
   const targetTemp = activeResult.params.customTargetTemp ?? 30;
   const timeToTarget = activeResult.timeToTarget;
   const waterAtTarget =
     timeToTarget !== null ? Math.round(activeResult.params.TapFlow * timeToTarget) : null;
 
-  // パラメータ変更の完全追従用フィンガープリント
   const p = activeResult.params;
   const paramsFingerprint = `${activeResult.id}_${targetTemp}_${timeToTarget}_${waterAtTarget}_${p.RPM}_${p.TapFlow}_${p.TapTemp}_${p.Soup_mass}_${p.StartTemp}_${p.Brix}_${p.Ex_D_mm}_${p.Ex_L_mm}_${p.Pot_D_mm}_${p.Pot_H_mm}_${p.chillerType}_${p.RoomTemp}_${p.RoomRH}`;
 
-  // 時間軸固定（X軸固定）の設定値：デフォルト120分まで明示
   const defaultMaxTime = 120;
   const isFixTime = !!(activeResult.params.fixTimeAxis || activeResult.params.fixTimeAxisMax);
   const timeMinVal = isFixTime ? Math.max(0, activeResult.params.fixedTimeMin ?? 0) : 0;
@@ -106,13 +110,11 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     ? Math.max(timeMinVal + 1, activeResult.params.fixedTimeMax ?? activeResult.params.fixedTimeAxisValue ?? defaultMaxTime)
     : Math.max(defaultMaxTime, Math.ceil(activeResult.totalTimeMin));
 
-  // 時間軸ラベルの生成 (timeMinVal から timeMaxVal まで 1分刻み)
   const timeLabels = Array.from(
     { length: Math.max(1, timeMaxVal - timeMinVal + 1) },
     (_, i) => String(timeMinVal + i)
   );
 
-  // 線形補間ヘルパー (120分まで継続プロット)
   const interpolateFromSeries = (t: number, key: 'soupTemp' | 'tapOut' | 'qCool' | 'qEvap' | 'qConv'): number | null => {
     const series = activeResult.timeSeries;
     if (series.length === 0) return null;
@@ -131,7 +133,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     return series[series.length - 1][key];
   };
 
-  // 各系列のデータ配列を 1分刻みで補間生成
   const soupTempData = timeLabels.map((tStr) => {
     const val = interpolateFromSeries(parseFloat(tStr), 'soupTemp');
     return val !== null ? Number(val.toFixed(2)) : null;
@@ -149,7 +150,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     return Number((activeResult.params.TapFlow * t).toFixed(1));
   });
 
-  // 温度軸・水量軸の固定値
   const isFixTemp = !!activeResult.params.fixTempAxis;
   const tempMinVal = isFixTemp ? activeResult.params.fixedTempMin ?? 10 : 0;
   const tempMaxVal = isFixTemp ? activeResult.params.fixedTempMax ?? 95 : undefined;
@@ -158,7 +158,19 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
   const waterMinVal = isFixWater ? activeResult.params.fixedWaterMin ?? 0 : 0;
   const waterMaxVal = isFixWater ? activeResult.params.fixedWaterMax ?? 500 : undefined;
 
-  // --- Chart 1: 冷却曲線用のカスタム描画プラグイン ---
+  // 時間ラベルのステップ（刻み幅）決定ヘルパー
+  const getStepInterval = (maxTime: number) => {
+    if (isMobile) {
+      if (maxTime > 300) return 60;
+      if (maxTime > 150) return 30;
+      return 20;
+    }
+    if (maxTime > 300) return 30;
+    if (maxTime > 180) return 20;
+    return 10;
+  };
+
+  // --- Chart 1: カスタムプラグイン ---
   const targetLinePlugin: Plugin<'line'> = {
     id: `targetLineAnnotation_${paramsFingerprint}`,
     afterDraw: (chart) => {
@@ -177,7 +189,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         const relIndex = timeToTarget - timeMinVal;
         const xPixel = xScale.getPixelForValue(relIndex);
 
-        // 1. 目標温度の水平ライン
         ctx.beginPath();
         ctx.setLineDash([5, 4]);
         ctx.lineWidth = 1.5;
@@ -186,14 +197,12 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         ctx.lineTo(xPixel, yPixel);
         ctx.stroke();
 
-        // 2. 水道水使用量 (L) のY軸座標の算出
         const yWaterScale = scales.yWater;
         let yWaterPixel: number | null = null;
         if (yWaterScale && waterAtTarget !== null) {
           yWaterPixel = yWaterScale.getPixelForValue(waterAtTarget);
         }
 
-        // 3. 時間の垂直ライン
         const topOfVerticalLine = yWaterPixel !== null ? Math.min(yPixel, yWaterPixel) : yPixel;
         ctx.beginPath();
         ctx.setLineDash([3, 3]);
@@ -203,7 +212,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         ctx.lineTo(xPixel, chartArea.bottom);
         ctx.stroke();
 
-        // 4. 水道使用量の点から右軸に向けて水平点線
         if (yWaterPixel !== null && yWaterPixel >= chartArea.top && yWaterPixel <= chartArea.bottom) {
           ctx.beginPath();
           ctx.setLineDash([4, 3]);
@@ -213,7 +221,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           ctx.lineTo(chartArea.right, yWaterPixel);
           ctx.stroke();
 
-          // 水道使用量交点ドット
           ctx.beginPath();
           ctx.setLineDash([]);
           ctx.arc(xPixel, yWaterPixel, 4.5, 0, Math.PI * 2);
@@ -224,7 +231,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           ctx.stroke();
         }
 
-        // 目標温度到達点マーカードット
         ctx.beginPath();
         ctx.setLineDash([]);
         ctx.arc(xPixel, yPixel, 5, 0, Math.PI * 2);
@@ -234,33 +240,31 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         ctx.strokeStyle = '#ffffff';
         ctx.stroke();
 
-        // 目立たせる大きな文字バッジ
         const roundedMin = Math.round(timeToTarget);
         const labelText1 = `目標 ${targetTemp}℃ 到達: ${roundedMin}分`;
         const labelText2 = `水道使用量: ${waterAtTarget}L`;
-        ctx.font = 'bold 12px Inter, sans-serif';
-        const w1 = ctx.measureText(labelText1).width;
         ctx.font = 'bold 11px Inter, sans-serif';
+        const w1 = ctx.measureText(labelText1).width;
+        ctx.font = 'bold 10px Inter, sans-serif';
         const w2 = ctx.measureText(labelText2).width;
-        const boxW = Math.max(w1, w2) + 18;
-        const boxH = 42;
+        const boxW = Math.max(w1, w2) + 16;
+        const boxH = 40;
 
-        let boxX = xPixel + 14;
+        let boxX = xPixel + 10;
         if (boxX + boxW > chartArea.right - 4) {
-          boxX = xPixel - boxW - 14;
+          boxX = xPixel - boxW - 10;
         }
         if (boxX < chartArea.left + 4) {
           boxX = chartArea.left + 4;
         }
 
-        let boxY = yPixel - boxH - 26;
+        let boxY = yPixel - boxH - 20;
         let isAbove = true;
         if (boxY < chartArea.top + 4) {
-          boxY = yPixel + 26;
+          boxY = yPixel + 20;
           isAbove = false;
         }
 
-        // 引き出し線
         ctx.beginPath();
         ctx.setLineDash([]);
         ctx.lineWidth = 1.2;
@@ -271,9 +275,8 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         ctx.lineTo(pointerTargetX, pointerTargetY);
         ctx.stroke();
 
-        // 背景バッジ
         ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 6;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 2;
         ctx.fillStyle = '#ffffff';
@@ -291,16 +294,15 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         ctx.shadowColor = 'transparent';
 
         ctx.fillStyle = '#065f46';
-        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.font = 'bold 11px Inter, sans-serif';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText(labelText1, boxX + 9, boxY + 6);
+        ctx.fillText(labelText1, boxX + 8, boxY + 5);
 
         ctx.fillStyle = '#1d4ed8';
-        ctx.font = 'bold 11px Inter, sans-serif';
-        ctx.fillText(labelText2, boxX + 9, boxY + 23);
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillText(labelText2, boxX + 8, boxY + 21);
       } else {
-        // 未達または最大計算時間を超える場合
         ctx.beginPath();
         ctx.setLineDash([5, 4]);
         ctx.lineWidth = 1.5;
@@ -314,7 +316,8 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     },
   };
 
-  // --- Chart 1: 冷却曲線データ ---
+  const stepInterval = getStepInterval(timeMaxVal);
+
   const coolingChartData = {
     labels: timeLabels,
     datasets: [
@@ -381,7 +384,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     responsive: true,
     maintainAspectRatio: false,
     layout: {
-      padding: { right: compact ? 45 : 28, left: 6, top: 12, bottom: 6 },
+      padding: { right: compact ? 35 : 15, left: 2, top: 12, bottom: 6 },
     },
     interaction: {
       mode: 'index',
@@ -401,21 +404,19 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     },
     plugins: {
       legend: {
-        display: !compact, // 提案書モード（compact）時は凡例非表示にしてエリア拡大
+        display: !compact,
         position: 'top',
         align: 'center',
         labels: {
           usePointStyle: false,
-          boxWidth: 16,
+          boxWidth: 14,
           boxHeight: 3,
-          font: { size: 10.5, family: 'Inter, sans-serif', weight: 'bold' },
+          font: { size: 10, family: 'Inter, sans-serif', weight: 'bold' },
           color: '#334155',
-          padding: 8,
+          padding: 6,
         },
       },
-      tooltip: {
-        enabled: false,
-      },
+      tooltip: { enabled: false },
     },
     scales: {
       x: {
@@ -423,25 +424,26 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           display: true,
           text: '冷却経過時間 (分)',
           color: '#475569',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 11, weight: 'bold' },
         },
         grid: {
           color: (ctx) => {
             const val = Number(timeLabels[ctx.index]);
-            return val % 10 === 0 ? '#cbd5e1' : 'transparent';
+            return val % stepInterval === 0 ? '#cbd5e1' : 'transparent';
           },
           lineWidth: (ctx) => {
             const val = Number(timeLabels[ctx.index]);
-            return val % 10 === 0 ? 1.0 : 0;
+            return val % stepInterval === 0 ? 1.0 : 0;
           },
         },
         ticks: {
           autoSkip: false,
-          font: { size: 11, weight: 'bold' },
+          maxRotation: 0,
+          font: { size: 10, weight: 'bold' },
           color: '#475569',
           callback: (_val, index) => {
             const num = Number(timeLabels[index]);
-            return num % 10 === 0 ? `${num}` : '';
+            return num % stepInterval === 0 ? `${num}` : '';
           },
         },
       },
@@ -452,25 +454,18 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           display: true,
           text: '温度 (℃)',
           color: '#dc2626',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 11, weight: 'bold' },
         },
         min: tempMinVal,
         ...(tempMaxVal !== undefined ? { max: tempMaxVal } : {}),
         grid: {
-          color: (ctx) => {
-            return ctx.tick.value % 10 === 0 ? '#cbd5e1' : '#f1f5f9';
-          },
-          lineWidth: (ctx) => {
-            return ctx.tick.value % 10 === 0 ? 1.2 : 0.8;
-          },
+          color: (ctx) => (ctx.tick.value % 10 === 0 ? '#cbd5e1' : '#f1f5f9'),
+          lineWidth: (ctx) => (ctx.tick.value % 10 === 0 ? 1.2 : 0.8),
         },
         ticks: {
-          stepSize: 5,
-          font: { size: 11, weight: 'bold' },
-          callback: (value) => {
-            const v = Number(value);
-            return v % 10 === 0 ? `${v}℃` : '';
-          },
+          stepSize: 10,
+          font: { size: 10, weight: 'bold' },
+          callback: (value) => `${value}℃`,
         },
       },
       yWater: {
@@ -478,22 +473,22 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         position: 'right' as const,
         title: {
           display: true,
-          text: '水道水使用量 (L)',
+          text: '水道量(L)',
           color: '#2563eb',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 11, weight: 'bold' },
         },
         grid: { drawOnChartArea: false },
         min: waterMinVal,
         ...(waterMaxVal !== undefined ? { max: waterMaxVal } : {}),
         ticks: {
-          font: { size: 11, weight: 'bold' },
+          font: { size: 10, weight: 'bold' },
           callback: (value) => `${value}L`,
         },
       },
     },
   };
 
-  // --- Chart 2: 3方式比較 (サーバーから取得したデータを使用) ---
+  // --- Chart 2: 3方式比較 ---
   const threeModesSimulations = useMemo(() => {
     if (threeModesData) {
       return [
@@ -517,6 +512,8 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     { length: Math.max(1, Math.ceil(threeModesMaxTime) - timeMinVal + 1) },
     (_, i) => String(timeMinVal + i)
   );
+
+  const threeStepInterval = getStepInterval(threeModesMaxTime);
 
   const getModeTempAtTime = (series: SimulationResult['timeSeries'], t: number): number | null => {
     if (!series || series.length === 0) return null;
@@ -580,7 +577,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     datasets: threeModesDatasets,
   };
 
-  // 3方式比較用の到達時間注記・目標温度線プラグイン
   const threeModesPlugin: Plugin<'line'> = {
     id: `threeModesPlugin_${paramsFingerprint}`,
     afterDraw: (chart) => {
@@ -595,7 +591,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
 
       ctx.save();
 
-      // 目標温度の水平ライン
       ctx.beginPath();
       ctx.setLineDash([5, 4]);
       ctx.lineWidth = 1.5;
@@ -604,31 +599,26 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
       ctx.lineTo(chartArea.right, yPixel);
       ctx.stroke();
 
-      // 目標温度ラベル
       ctx.fillStyle = '#059669';
       ctx.font = 'bold 11px Inter, sans-serif';
       ctx.textAlign = 'left';
       ctx.fillText(`目標 ${targetTemp}℃`, chartArea.left + 6, yPixel - 6);
 
-      // 水温線の下に「水温」と明記
       const tapTemp = activeResult.params.TapTemp;
       const yTapPixel = yScale.getPixelForValue(tapTemp);
       if (yTapPixel >= chartArea.top && yTapPixel <= chartArea.bottom) {
         ctx.fillStyle = '#0891b2';
         ctx.font = 'bold 11px Inter, sans-serif';
         ctx.textAlign = 'left';
-        // 水温線（破線）の真下(yTapPixel + 13px)に「水温 XX℃」と明記
         ctx.fillText(`水温 ${tapTemp}℃`, chartArea.left + 6, yTapPixel + 13);
       }
 
-      // 各方式の到達点マーカードットと垂直線、到達時間バッジを描画
       threeModesSimulations.forEach((m, idx) => {
         if (m.timeTarget !== null) {
           if (m.timeTarget >= timeMinVal && m.timeTarget <= threeModesMaxTime) {
             const relIndex = m.timeTarget - timeMinVal;
             const xPixel = xScale.getPixelForValue(relIndex);
 
-            // 垂直破線
             ctx.beginPath();
             ctx.setLineDash([3, 3]);
             ctx.lineWidth = 1.5;
@@ -637,7 +627,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
             ctx.lineTo(xPixel, chartArea.bottom);
             ctx.stroke();
 
-            // 到達点交点ドット
             ctx.beginPath();
             ctx.setLineDash([]);
             ctx.arc(xPixel, yPixel, 5.5, 0, Math.PI * 2);
@@ -647,53 +636,48 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
             ctx.strokeStyle = '#ffffff';
             ctx.stroke();
 
-            // バッジサイズ
             const badgeText = `${m.name}: ${Math.round(m.timeTarget)}分`;
-            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.font = 'bold 10px Inter, sans-serif';
             const txtW = ctx.measureText(badgeText).width;
-            const bW = txtW + 14;
-            const bH = 20;
+            const bW = txtW + 12;
+            const bH = 18;
 
-            // 線の上方の空白エリアにバッジを配置
-            const yOffset = 34 + idx * 26;
+            const yOffset = 30 + idx * 24;
             let badgeY = yPixel - yOffset;
             let isAbove = true;
             if (badgeY < chartArea.top + 6) {
-              badgeY = chartArea.top + 6 + idx * 24;
+              badgeY = chartArea.top + 6 + idx * 22;
             }
 
-            // X位置 (右端オーバーフローを自動防止：壁に当たったら左側に反転配置)
-            let badgeX = xPixel + (idx === 0 ? -bW / 2 : idx === 1 ? -bW / 2 : 8);
+            let badgeX = xPixel + (idx === 0 ? -bW / 2 : idx === 1 ? -bW / 2 : 6);
             if (badgeX + bW > chartArea.right - 4) {
-              badgeX = xPixel - bW - 8;
+              badgeX = xPixel - bW - 6;
             }
             if (badgeX < chartArea.left + 4) {
               badgeX = chartArea.left + 4;
             }
 
-            // 引き出し線
             ctx.beginPath();
             ctx.setLineDash([]);
-            ctx.lineWidth = 1.4;
+            ctx.lineWidth = 1.2;
             ctx.strokeStyle = m.color;
-            const connectX = Math.max(badgeX + 8, Math.min(badgeX + bW - 8, xPixel));
+            const connectX = Math.max(badgeX + 6, Math.min(badgeX + bW - 6, xPixel));
             const connectY = isAbove ? badgeY + bH : badgeY;
             ctx.moveTo(xPixel, yPixel);
             ctx.lineTo(connectX, connectY);
             ctx.stroke();
 
-            // バッジ背景シャドウ＆ボックス
             ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = 5;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 2;
 
             ctx.fillStyle = '#ffffff';
             ctx.strokeStyle = m.color;
-            ctx.lineWidth = 1.8;
+            ctx.lineWidth = 1.6;
             ctx.beginPath();
             if (ctx.roundRect) {
-              ctx.roundRect(badgeX, badgeY, bW, bH, 5);
+              ctx.roundRect(badgeX, badgeY, bW, bH, 4);
             } else {
               ctx.rect(badgeX, badgeY, bW, bH);
             }
@@ -706,54 +690,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(badgeText, badgeX + bW / 2, badgeY + bH / 2);
-          } else if (m.timeTarget > threeModesMaxTime) {
-            // 最大時間を超える場合
-            const badgeText = `${m.name}: ${Math.round(m.timeTarget)}分`;
-            ctx.font = 'bold 11px Inter, sans-serif';
-            const txtW = ctx.measureText(badgeText).width;
-            const bW = txtW + 14;
-            const bH = 22;
-
-            const bX = chartArea.right - bW - 4;
-            const bY = Math.max(chartArea.top + 6, yPixel - 42);
-
-            ctx.beginPath();
-            ctx.setLineDash([3, 2]);
-            ctx.lineWidth = 1.5;
-            ctx.strokeStyle = m.color;
-            ctx.moveTo(chartArea.right - 15, yPixel);
-            ctx.lineTo(chartArea.right - 15, bY + bH);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.setLineDash([]);
-            ctx.arc(chartArea.right - 15, yPixel, 4, 0, Math.PI * 2);
-            ctx.fillStyle = m.color;
-            ctx.fill();
-
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
-            ctx.shadowBlur = 6;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 2;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.strokeStyle = m.color;
-            ctx.lineWidth = 2.0;
-            ctx.beginPath();
-            if (ctx.roundRect) {
-              ctx.roundRect(bX, bY, bW, bH, 5);
-            } else {
-              ctx.rect(bX, bY, bW, bH);
-            }
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.shadowColor = 'transparent';
-
-            ctx.fillStyle = m.color;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(badgeText, bX + bW / 2, bY + bH / 2);
           }
         }
       });
@@ -766,7 +702,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     responsive: true,
     maintainAspectRatio: false,
     layout: {
-      padding: { right: compact ? 30 : 28, left: 6, top: 12, bottom: 6 },
+      padding: { right: compact ? 25 : 15, left: 2, top: 12, bottom: 6 },
     },
     interaction: {
       mode: 'index',
@@ -789,12 +725,8 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
       }
     },
     plugins: {
-      legend: {
-        display: false, // 図中に記載があるため上部凡例（レジェンド）を非表示
-      },
-      tooltip: {
-        enabled: false,
-      },
+      legend: { display: false },
+      tooltip: { enabled: false },
     },
     scales: {
       x: {
@@ -802,25 +734,26 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           display: true,
           text: '冷却経過時間 (分)',
           color: '#475569',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 11, weight: 'bold' },
         },
         grid: {
           color: (ctx) => {
             const val = Number(threeModesLabels[ctx.index]);
-            return val % 10 === 0 ? '#cbd5e1' : 'transparent';
+            return val % threeStepInterval === 0 ? '#cbd5e1' : 'transparent';
           },
           lineWidth: (ctx) => {
             const val = Number(threeModesLabels[ctx.index]);
-            return val % 10 === 0 ? 1.0 : 0;
+            return val % threeStepInterval === 0 ? 1.0 : 0;
           },
         },
         ticks: {
           autoSkip: false,
-          font: { size: 11, weight: 'bold' },
+          maxRotation: 0,
+          font: { size: 10, weight: 'bold' },
           color: '#475569',
           callback: (_val, index) => {
             const num = Number(threeModesLabels[index]);
-            return num % 10 === 0 ? `${num}` : '';
+            return num % threeStepInterval === 0 ? `${num}` : '';
           },
         },
       },
@@ -829,31 +762,24 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           display: true,
           text: 'スープ温度 (℃)',
           color: '#dc2626',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 11, weight: 'bold' },
         },
         min: tempMinVal,
         ...(tempMaxVal !== undefined ? { max: tempMaxVal } : {}),
         grid: {
-          color: (ctx) => {
-            return ctx.tick.value % 10 === 0 ? '#cbd5e1' : '#f1f5f9';
-          },
-          lineWidth: (ctx) => {
-            return ctx.tick.value % 10 === 0 ? 1.2 : 0.8;
-          },
+          color: (ctx) => (ctx.tick.value % 10 === 0 ? '#cbd5e1' : '#f1f5f9'),
+          lineWidth: (ctx) => (ctx.tick.value % 10 === 0 ? 1.2 : 0.8),
         },
         ticks: {
-          stepSize: 5,
-          font: { size: 11, weight: 'bold' },
-          callback: (value) => {
-            const v = Number(value);
-            return v % 10 === 0 ? `${v}℃` : '';
-          },
+          stepSize: 10,
+          font: { size: 10, weight: 'bold' },
+          callback: (value) => `${value}℃`,
         },
       },
     },
   };
 
-  // --- Chart 3: 多ケース比較グラフ ---
+  // --- Chart 3: 多ケース比較 ---
   const compareList = savedResults.length > 0 ? savedResults : [activeResult];
   const compareMaxTime = isFixTime
     ? timeMaxVal
@@ -862,6 +788,8 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     { length: Math.max(1, Math.ceil(compareMaxTime) - timeMinVal + 1) },
     (_, i) => String(timeMinVal + i)
   );
+
+  const compareStepInterval = getStepInterval(compareMaxTime);
 
   const compareChartData = {
     labels: compareLabels,
@@ -901,7 +829,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
     responsive: true,
     maintainAspectRatio: false,
     layout: {
-      padding: { right: compact ? 30 : 28, left: 6, top: 12, bottom: 6 },
+      padding: { right: compact ? 25 : 15, left: 2, top: 12, bottom: 6 },
     },
     interaction: {
       mode: 'index',
@@ -932,16 +860,14 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         align: 'center',
         labels: {
           usePointStyle: false,
-          boxWidth: 16,
+          boxWidth: 14,
           boxHeight: 3,
-          font: { size: 10.5, family: 'Inter, sans-serif', weight: 'bold' },
+          font: { size: 10, family: 'Inter, sans-serif', weight: 'bold' },
           color: '#334155',
-          padding: 8,
+          padding: 6,
         },
       },
-      tooltip: {
-        enabled: false,
-      },
+      tooltip: { enabled: false },
     },
     scales: {
       x: {
@@ -949,25 +875,26 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           display: true,
           text: '経過時間 (分)',
           color: '#475569',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 11, weight: 'bold' },
         },
         grid: {
           color: (ctx) => {
             const val = Number(compareLabels[ctx.index]);
-            return val % 10 === 0 ? '#cbd5e1' : 'transparent';
+            return val % compareStepInterval === 0 ? '#cbd5e1' : 'transparent';
           },
           lineWidth: (ctx) => {
             const val = Number(compareLabels[ctx.index]);
-            return val % 10 === 0 ? 1.0 : 0;
+            return val % compareStepInterval === 0 ? 1.0 : 0;
           },
         },
         ticks: {
           autoSkip: false,
-          font: { size: 11, weight: 'bold' },
+          maxRotation: 0,
+          font: { size: 10, weight: 'bold' },
           color: '#475569',
           callback: (_val, index) => {
             const num = Number(compareLabels[index]);
-            return num % 10 === 0 ? `${num}` : '';
+            return num % compareStepInterval === 0 ? `${num}` : '';
           },
         },
       },
@@ -976,25 +903,18 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
           display: true,
           text: 'スープ温度 (℃)',
           color: '#dc2626',
-          font: { size: 12, weight: 'bold' },
+          font: { size: 11, weight: 'bold' },
         },
         min: tempMinVal,
         ...(tempMaxVal !== undefined ? { max: tempMaxVal } : {}),
         grid: {
-          color: (ctx) => {
-            return ctx.tick.value % 10 === 0 ? '#cbd5e1' : '#f1f5f9';
-          },
-          lineWidth: (ctx) => {
-            return ctx.tick.value % 10 === 0 ? 1.2 : 0.8;
-          },
+          color: (ctx) => (ctx.tick.value % 10 === 0 ? '#cbd5e1' : '#f1f5f9'),
+          lineWidth: (ctx) => (ctx.tick.value % 10 === 0 ? 1.2 : 0.8),
         },
         ticks: {
-          stepSize: 5,
-          font: { size: 11, weight: 'bold' },
-          callback: (value) => {
-            const v = Number(value);
-            return v % 10 === 0 ? `${v}℃` : '';
-          },
+          stepSize: 10,
+          font: { size: 10, weight: 'bold' },
+          callback: (value) => `${value}℃`,
         },
       },
     },
@@ -1002,11 +922,9 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
 
   return (
     <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden flex flex-col h-full">
-      {/* Chart Tabs: 冷却曲線 -> 3方式比較 -> 多ケース比較 (hideTabsがtrueの時は非表示) */}
       {!hideTabs && (
         <div className="bg-slate-50/90 px-3 py-1.5 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center space-x-1.5">
-            {/* ① 冷却曲線 */}
             <button
               onClick={() => setActiveTab('cooling')}
               className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center space-x-1.5 transition cursor-pointer ${
@@ -1019,7 +937,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
               <span>冷却曲線</span>
             </button>
 
-            {/* ② 3方式比較 */}
             <button
               onClick={() => setActiveTab('threeModes')}
               className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center space-x-1.5 transition cursor-pointer ${
@@ -1032,7 +949,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
               <span>3方式比較</span>
             </button>
 
-            {/* ③ 多ケース比較 */}
             <button
               onClick={() => setActiveTab('compare')}
               className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center space-x-1.5 transition cursor-pointer ${
@@ -1059,17 +975,16 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         </div>
       )}
 
-      {/* Chart Canvas Area */}
       <div
         className={`p-2 sm:p-2.5 relative flex-1 ${
           compact
-          ? 'min-h-[350px] h-[390px] print:min-h-[320px] print:h-[320px] print:p-1'
-          : 'min-h-[460px] h-full flex-1'
+            ? 'min-h-[350px] h-[390px] print:min-h-[320px] print:h-[320px] print:p-1'
+            : 'min-h-[460px] h-full flex-1'
         }`}
       >
         {activeTab === 'cooling' && (
           <Line
-            key={`cooling_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${isFixWater}_${timeMaxVal}_${tempMaxVal}_${waterMaxVal}`}
+            key={`cooling_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${isFixWater}_${timeMaxVal}_${tempMaxVal}_${waterMaxVal}_${isMobile}`}
             data={coolingChartData}
             options={coolingOptions}
             plugins={[targetLinePlugin]}
@@ -1077,7 +992,7 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         )}
         {activeTab === 'threeModes' && (
           <Line
-            key={`threeModes_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${threeModesMaxTime}`}
+            key={`threeModes_${paramsFingerprint}_${isFixTime}_${isFixTemp}_${threeModesMaxTime}_${isMobile}`}
             data={threeModesChartData}
             options={threeModesOptions}
             plugins={[threeModesPlugin]}
@@ -1085,23 +1000,21 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
         )}
         {activeTab === 'compare' && (
           <Line
-            key={`compare_${compareList.length}_${isFixTime}_${isFixTemp}`}
+            key={`compare_${compareList.length}_${isFixTime}_${isFixTemp}_${isMobile}`}
             data={compareChartData}
             options={compareOptions}
           />
         )}
       </div>
 
-      {/* グラフ下部のプロット読み取り表示欄 (hideHoverReadoutがtrueの時は非表示にしてグラフを拡大) */}
       {!hideHoverReadout && (
         <div className={`bg-slate-900 text-white px-3 text-xs flex flex-wrap items-center justify-between gap-2 border-t border-slate-700 ${compact ? 'py-1 min-h-[28px]' : 'py-1.5 min-h-[34px]'}`}>
           <div className="flex items-center space-x-2">
             <span className="text-slate-400 text-xs font-semibold">プロット読取値:</span>
 
-            {/* ① 冷却曲線タブの読取値 */}
             {activeTab === 'cooling' && (
               coolingHover ? (
-                <div className="flex items-center space-x-3.5 font-mono text-xs">
+                <div className="flex items-center space-x-3.5 font-mono text-xs flex-wrap gap-y-0.5">
                   <span className="text-cyan-300 font-bold">
                     時間: {coolingHover.timeMin}分
                   </span>
@@ -1122,10 +1035,9 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
               )
             )}
 
-            {/* ② 3方式比較タブの読取値 */}
             {activeTab === 'threeModes' && (
               threeModesHover ? (
-                <div className="flex items-center space-x-3.5 font-mono text-xs">
+                <div className="flex items-center space-x-3.5 font-mono text-xs flex-wrap gap-y-0.5">
                   <span className="text-cyan-300 font-bold">
                     時間: {threeModesHover.timeMin}分
                   </span>
@@ -1149,7 +1061,6 @@ export const ChartsSection: React.FC<ChartsSectionProps> = ({
               )
             )}
 
-            {/* ③ 多ケース比較タブの読取値 */}
             {activeTab === 'compare' && (
               compareHover ? (
                 <div className="flex items-center space-x-3 font-mono text-xs flex-wrap gap-y-1">
