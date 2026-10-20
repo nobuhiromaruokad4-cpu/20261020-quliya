@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Remix Remix Remix Remix 撹拌式急速冷却シミュレーター (Soup Chiller Simulator)",
+  "description": "撹拌式浸漬冷却（スープチラー）の伝熱物理モデルシミュレーションWebアプリ。パラメータ入力、4次ルンゲクッタ数値計算、冷却曲線グラフ表示、多ケース比較、CSV入出力に対応。",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@media print {
+  /* 印刷時は不要なヘッダー・フッター・操作ボタン・説明注釈を非表示 */
+  header,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  /* A4縦1ページに確実に収める用紙設定 (上下6mm・左右7mm) */
+  @page {
+    size: A4 portrait;
+    margin: 6mm 7mm 6mm 7mm;
+  }
+
+  html, body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11.5px !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  main {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 印刷時改ページ防止 */
+  .page-break-inside-avoid,
+  .print-fit-page {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* 印刷時のグラフ横幅最適化（ワイド画面表示時でもはみ出さずきれいな縦横比にフィット） */
+  canvas {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* 印刷時の適度な余白設定 (改ページ溢れを防止しつつ用紙全体をバランス良く配置) */
+  .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.35rem !important;
+  }
+  .space-y-2\.5 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.28rem !important;
+  }
+  .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.22rem !important;
+  }
+
+  /* 影の無効化 */
+  .shadow-xs,
+  .shadow-2xs,
+  .shadow-sm,
+  .shadow-md {
+    box-shadow: none !important;
+  }
+
+  /* 印刷時のグラフ枠高さ制御 (A4縦1ページに確実に収まる260px) */
+  .print-chart-container {
+    height: 260px !important;
+    min-height: 260px !important;
+    max-height: 260px !important;
+  }
+}
