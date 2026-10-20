@@ -184,17 +184,18 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ result, threeModesData
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between px-1 text-xs">
-        <div className="flex items-center space-x-1.5 font-bold text-slate-800 text-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between px-1 gap-0.5 sm:gap-0 text-xs">
+        <div className="flex items-center space-x-1.5 font-bold text-slate-800 text-xs sm:text-sm">
           <span className="w-2.5 h-2.5 rounded-full bg-cyan-600" />
           <span>3方式 到達時間サマリー</span>
         </div>
-        <span className="text-xs text-slate-500 font-sans">
+        <span className="text-[10px] sm:text-xs text-slate-500 font-sans">
           ※水物性モデル準拠（比熱・粘度・熱伝導率は水ベースで算出）
         </span>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      {/* スマホ(1列: grid-cols-1) → タブレット(2列: sm:grid-cols-2) → PC(4列: lg:grid-cols-4) に変更 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
         {milestones.map((m, idx) => (
           <div
             key={idx}
@@ -209,7 +210,7 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ result, threeModesData
               <div className="flex items-center space-x-1.5">
                 {m.icon}
                 <span
-                  className={`text-sm sm:text-base font-bold tracking-tight leading-tight ${
+                  className={`text-xs sm:text-sm font-bold tracking-tight leading-tight ${
                     m.isTarget ? 'text-emerald-950 font-extrabold' : 'text-slate-800'
                   }`}
                 >
@@ -223,75 +224,72 @@ export const MetricCards: React.FC<MetricCardsProps> = ({ result, threeModesData
               )}
             </div>
 
-            {/* 各方式の行: Gridレイアウトで「水量:」「数値」「L」の縦ライン位置を完全同期 */}
-            <div className="space-y-1.5 font-mono text-xs sm:text-[13px] w-full">
+            {/* 各方式の行: Flexbox配置でスマホ表示時もはみ出さず綺麗に収まるよう調整 */}
+            <div className="space-y-1.5 font-mono text-xs w-full">
               {m.modes.map((item) => {
                 const style = MODE_STYLES[item.key];
                 return (
                   <div
                     key={item.modeName}
-                    className={`grid grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-x-1 sm:gap-x-1.5 w-full px-2 py-1 rounded transition ${
+                    className={`flex items-center justify-between w-full px-2 py-1 rounded transition ${
                       item.isActive ? style.activeBg : style.inactiveBg
                     }`}
                   >
-                    {/* ① ドット + 方式名 */}
-                    <div className="flex items-center space-x-1 shrink-0 pr-0.5">
+                    {/* 左側: ドット + 方式名 */}
+                    <div className="flex items-center space-x-1 shrink-0">
                       <span
                         className={`w-2 h-2 rounded-full shrink-0 ${style.dotColor} ${
                           item.isActive ? 'ring-1 ring-offset-1 ring-slate-400' : 'opacity-85'
                         }`}
                       />
-                      <span className={`font-bold whitespace-nowrap text-xs sm:text-[13px] ${style.textColor}`}>
+                      <span className={`font-bold whitespace-nowrap text-xs ${style.textColor}`}>
                         {item.modeName}
                       </span>
                     </div>
 
-                    {/* ② 所要時間 */}
-                    <div className="flex items-center justify-end font-bold pr-0.5">
-                      <span
-                        className={`text-right text-xs sm:text-sm ${
-                          item.time !== null ? style.timeColor : 'text-slate-400 font-normal'
-                        }`}
-                      >
-                        {item.time !== null ? item.time : '未達'}
-                      </span>
-                      {item.time !== null && (
-                        <span className="text-[11px] text-slate-500 ml-0.5 font-normal">分</span>
-                      )}
-                    </div>
-
-                    {/* ③ 所要時間比率バッジ */}
-                    <div className="w-[34px] flex justify-center shrink-0">
-                      {item.time !== null ? (
+                    {/* 中央: 時間 + 比率バッジ */}
+                    <div className="flex items-center space-x-1.5 shrink-0">
+                      <div className="flex items-center justify-end font-bold">
                         <span
-                          className={`text-[10px] w-full text-center px-0.5 py-0.2 rounded font-bold ${style.badge}`}
-                          title="所要時間比率"
+                          className={`text-right text-xs sm:text-[13px] ${
+                            item.time !== null ? style.timeColor : 'text-slate-400 font-normal'
+                          }`}
                         >
-                          {item.ratioStr}
+                          {item.time !== null ? item.time : '未達'}
                         </span>
-                      ) : (
-                        <span className="text-[10px] text-slate-300">-</span>
-                      )}
+                        {item.time !== null && (
+                          <span className="text-[10px] text-slate-500 ml-0.5 font-normal">分</span>
+                        )}
+                      </div>
+
+                      <div className="w-[32px] flex justify-center shrink-0">
+                        {item.time !== null ? (
+                          <span
+                            className={`text-[9.5px] w-full text-center px-0.5 py-0.2 rounded font-bold ${style.badge}`}
+                            title="所要時間比率"
+                          >
+                            {item.ratioStr}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-slate-300">-</span>
+                        )}
+                      </div>
                     </div>
 
-                    {/* ④ 水量ラベル */}
-                    <span className="text-slate-500 text-[11px] pl-1 whitespace-nowrap shrink-0">
-                      水量:
-                    </span>
-
-                    {/* ⑤ 水量数値 (固定幅・右揃えで桁数のズレを防止) */}
-                    <div className="text-right shrink-0">
+                    {/* 右側: 水量 */}
+                    <div className="flex items-center text-xs shrink-0 font-mono">
                       {item.time !== null ? (
-                        <span className="font-bold text-blue-700 text-xs sm:text-sm inline-block min-w-[32px] sm:min-w-[36px]">
-                          {item.waterL}
-                        </span>
+                        <div className="flex items-center space-x-0.5">
+                          <span className="text-slate-500 text-[10px]">水量:</span>
+                          <span className="font-bold text-blue-700 text-xs inline-block text-right min-w-[28px]">
+                            {item.waterL}
+                          </span>
+                          <span className="text-slate-500 text-[10px]">L</span>
+                        </div>
                       ) : (
                         <span className="text-slate-400 text-[10px] italic">未達</span>
                       )}
                     </div>
-
-                    {/* ⑥ 単位 L */}
-                    <span className="text-slate-500 text-[11px] shrink-0">L</span>
                   </div>
                 );
               })}
