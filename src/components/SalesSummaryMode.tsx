@@ -344,9 +344,6 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                     <Scale className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600 shrink-0" />
                     <span>月間純メリット</span>
                   </span>
-                  <span className="text-[7.5px] sm:text-[8.5px] font-bold text-emerald-700 bg-emerald-100 px-0.5 py-0.2 rounded font-sans leading-none shrink-0">
-                    手残り
-                  </span>
                 </div>
                 <div className="mt-0.5 text-sm sm:text-base font-black text-emerald-800 font-mono tracking-tight flex items-baseline leading-none whitespace-nowrap">
                   {netSavingsMonth >= 0 ? `+${netSavingsMonth.toLocaleString()}` : `${netSavingsMonth.toLocaleString()}`}
