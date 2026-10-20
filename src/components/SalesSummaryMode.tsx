@@ -262,7 +262,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-[10.5px] font-black text-indigo-950 flex items-center gap-1">
                     <Receipt className="w-3 h-3 text-indigo-600 shrink-0" />
-                    <span>導入によって増えるコスト</span>
+                    <span>導入コスト</span>
                   </span>
                 </div>
                 <div className="mt-0.5 text-lg sm:text-xl font-black text-indigo-950 font-mono tracking-tight leading-tight">
@@ -294,7 +294,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-[10.5px] font-bold text-cyan-800 flex items-center gap-1">
                     <Droplets className="w-3 h-3 text-cyan-600 shrink-0" />
-                    <span>水道料金の削減額</span>
+                    <span>水道料金削減</span>
                   </span>
                 </div>
                 <div className="mt-0.5 text-lg sm:text-xl font-black text-cyan-900 font-mono leading-tight">
@@ -348,10 +348,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="text-[10.5px] font-black text-emerald-900 flex items-center gap-1">
                     <Scale className="w-3 h-3 text-emerald-600 shrink-0" />
-                    <span>月間純メリット</span>
-                  </span>
-                  <span className="text-[8.5px] font-bold text-emerald-700 bg-emerald-100 px-1 py-0.2 rounded font-sans">
-                    実質手残り
+                    <span>月間メリット</span>
                   </span>
                 </div>
                 <div className="mt-0.5 text-lg sm:text-xl font-black text-emerald-800 font-mono tracking-tight flex items-baseline leading-tight">
