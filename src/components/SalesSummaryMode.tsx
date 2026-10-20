@@ -352,9 +352,6 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                     <Scale className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
                     <span>月間メリット</span>
                   </span>
-                  <span className="text-[7.5px] sm:text-[8.5px] font-bold text-emerald-700 bg-emerald-100 px-0.5 py-0.2 rounded font-sans leading-none shrink-0">
-                    手残り
-                  </span>
                 </div>
                 {/* ★金額拡大: text-lg sm:text-2xl */}
                 <div className="mt-1 text-lg sm:text-2xl font-black text-emerald-800 font-mono tracking-tight flex items-baseline leading-none whitespace-nowrap">
