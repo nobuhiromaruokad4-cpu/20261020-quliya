@@ -167,7 +167,8 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-xl p-2 text-white shadow-md border border-slate-700/80">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-1.5 border-b border-white/10">
           <div>
-            <h2 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
+            {/* ★ メインタイトルの文字サイズを大きく (text-lg sm:text-xl) */}
+            <h2 className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-2">
               QULIYA CHILLER 導入によるコスト削減シミュレーション
             </h2>
             <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">
@@ -254,22 +255,24 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
             </div>
           )}
 
-          {/* ★ 4カラムを常に横一列 (grid-cols-4) に固定 */}
+          {/* ★ 4カラムを常に横一列 (grid-cols-4) に配置 */}
           <div className="grid grid-cols-4 gap-1 sm:gap-1.5 mb-1">
             {/* ① 導入コスト */}
-            <div className="p-1 rounded-lg border-2 border-indigo-400 bg-gradient-to-br from-indigo-50/70 via-white to-indigo-100/60 flex flex-col justify-between shadow-2xs min-w-0">
+            <div className="p-1 sm:p-1.5 rounded-lg border-2 border-indigo-400 bg-gradient-to-br from-indigo-50/70 via-white to-indigo-100/60 flex flex-col justify-between shadow-2xs min-w-0">
               <div>
-                <span className="text-[9.5px] sm:text-[10px] font-black text-indigo-950 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
-                  <Receipt className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-600 shrink-0" />
+                {/* ★枠タイトル拡大: text-xs sm:text-[13px] */}
+                <span className="text-xs sm:text-[13px] font-black text-indigo-950 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                  <Receipt className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600 shrink-0" />
                   <span>導入コスト</span>
                 </span>
-                <div className="mt-0.5 text-sm sm:text-base font-black text-indigo-950 font-mono tracking-tight leading-none whitespace-nowrap">
+                {/* ★金額拡大: text-lg sm:text-2xl */}
+                <div className="mt-1 text-lg sm:text-2xl font-black text-indigo-950 font-mono tracking-tight leading-none whitespace-nowrap">
                   {addedCostMonth.toLocaleString()}
-                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-indigo-800 font-sans">円/月</span>
+                  <span className="text-xs font-bold ml-0.5 text-indigo-800 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-0.5 pt-0.5 border-t border-indigo-200/90 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
+              <div className="mt-1 pt-0.5 border-t border-indigo-200/90 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
                 <div className="grid grid-cols-[auto_1fr_auto] gap-x-0.5 items-center text-slate-600 w-full">
                   <span className="text-left whitespace-nowrap">① レンタル:</span>
                   <span className="text-right font-bold text-slate-800">{monthlyRentalYen.toLocaleString()}</span>
@@ -287,19 +290,21 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
             </div>
 
             {/* ② 水道代削減 */}
-            <div className="p-1 rounded-lg border border-cyan-200 bg-cyan-50/60 flex flex-col justify-between min-w-0">
+            <div className="p-1 sm:p-1.5 rounded-lg border border-cyan-200 bg-cyan-50/60 flex flex-col justify-between min-w-0">
               <div>
-                <span className="text-[9.5px] sm:text-[10px] font-bold text-cyan-800 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
-                  <Droplets className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-600 shrink-0" />
+                {/* ★枠タイトル拡大: text-xs sm:text-[13px] */}
+                <span className="text-xs sm:text-[13px] font-bold text-cyan-800 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                  <Droplets className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-600 shrink-0" />
                   <span>水道料金削減</span>
                 </span>
-                <div className="mt-0.5 text-sm sm:text-base font-black text-cyan-900 font-mono leading-none whitespace-nowrap">
+                {/* ★金額拡大: text-lg sm:text-2xl */}
+                <div className="mt-1 text-lg sm:text-2xl font-black text-cyan-900 font-mono leading-none whitespace-nowrap">
                   ▲{waterSavingsMonth.toLocaleString()}
-                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-cyan-700 font-sans">円/月</span>
+                  <span className="text-xs font-bold ml-0.5 text-cyan-700 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-0.5 pt-0.5 border-t border-cyan-200/80 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
+              <div className="mt-1 pt-0.5 border-t border-cyan-200/80 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
                 <div className="grid grid-cols-[auto_1fr_auto] gap-x-0.5 items-center text-cyan-800 w-full">
                   <span className="text-left whitespace-nowrap">月間水削減:</span>
                   <span className="text-right font-bold">{((sinkWater - rotWater) * monthlyBatches).toLocaleString()}</span>
@@ -312,19 +317,21 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
             </div>
 
             {/* ③ 人件費削減 */}
-            <div className="p-1 rounded-lg border border-amber-200 bg-amber-50/60 flex flex-col justify-between min-w-0">
+            <div className="p-1 sm:p-1.5 rounded-lg border border-amber-200 bg-amber-50/60 flex flex-col justify-between min-w-0">
               <div>
-                <span className="text-[9.5px] sm:text-[10px] font-bold text-amber-800 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
-                  <Timer className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600 shrink-0" />
+                {/* ★枠タイトル拡大: text-xs sm:text-[13px] */}
+                <span className="text-xs sm:text-[13px] font-bold text-amber-800 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                  <Timer className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-600 shrink-0" />
                   <span>人件費削減</span>
                 </span>
-                <div className="mt-0.5 text-sm sm:text-base font-black text-amber-900 font-mono leading-none whitespace-nowrap">
+                {/* ★金額拡大: text-lg sm:text-2xl */}
+                <div className="mt-1 text-lg sm:text-2xl font-black text-amber-900 font-mono leading-none whitespace-nowrap">
                   ▲{laborSavingsMonth.toLocaleString()}
-                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-amber-700 font-sans">円/月</span>
+                  <span className="text-xs font-bold ml-0.5 text-amber-700 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-0.5 pt-0.5 border-t border-amber-200/80 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
+              <div className="mt-1 pt-0.5 border-t border-amber-200/80 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
                 <div className="grid grid-cols-[auto_1fr_auto] gap-x-0.5 items-center text-amber-800 w-full">
                   <span className="text-left whitespace-nowrap">拘束時間削減:</span>
                   <span className="text-right font-bold">▲{timeSavingsHoursMonth.toFixed(1)}</span>
@@ -337,21 +344,26 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
             </div>
 
             {/* ④ 純手残りメリット */}
-            <div className="p-1 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/70 flex flex-col justify-between shadow-2xs min-w-0">
+            <div className="p-1 sm:p-1.5 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/70 flex flex-col justify-between shadow-2xs min-w-0">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[9.5px] sm:text-[10px] font-black text-emerald-900 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
-                    <Scale className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600 shrink-0" />
-                    <span>月間純メリット</span>
+                  {/* ★枠タイトル拡大: text-xs sm:text-[13px] */}
+                  <span className="text-xs sm:text-[13px] font-black text-emerald-900 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                    <Scale className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
+                    <span>月間メリット</span>
+                  </span>
+                  <span className="text-[7.5px] sm:text-[8.5px] font-bold text-emerald-700 bg-emerald-100 px-0.5 py-0.2 rounded font-sans leading-none shrink-0">
+                    手残り
                   </span>
                 </div>
-                <div className="mt-0.5 text-sm sm:text-base font-black text-emerald-800 font-mono tracking-tight flex items-baseline leading-none whitespace-nowrap">
+                {/* ★金額拡大: text-lg sm:text-2xl */}
+                <div className="mt-1 text-lg sm:text-2xl font-black text-emerald-800 font-mono tracking-tight flex items-baseline leading-none whitespace-nowrap">
                   {netSavingsMonth >= 0 ? `+${netSavingsMonth.toLocaleString()}` : `${netSavingsMonth.toLocaleString()}`}
-                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-emerald-950 font-sans">円/月</span>
+                  <span className="text-xs font-bold ml-0.5 text-emerald-950 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-0.5 pt-0.5 border-t border-emerald-300/80 text-[8px] sm:text-[9px] font-mono flex flex-col items-end leading-tight">
+              <div className="mt-1 pt-0.5 border-t border-emerald-300/80 text-[8px] sm:text-[9px] font-mono flex flex-col items-end leading-tight">
                 <div className="text-[8px] sm:text-[9px] text-emerald-800 font-semibold leading-none text-right w-full whitespace-nowrap overflow-hidden text-ellipsis">
                   （水道＋人件費削減）
                 </div>
