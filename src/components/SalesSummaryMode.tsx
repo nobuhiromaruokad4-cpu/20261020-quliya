@@ -162,10 +162,10 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
   };
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-1">
       {/* 1. トップバナー & アクション */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-xl p-2.5 text-white shadow-md border border-slate-700/80">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/10">
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-xl p-2 text-white shadow-md border border-slate-700/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-1.5 border-b border-white/10">
           <div>
             <h2 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
               QULIYA CHILLER 導入によるコスト削減シミュレーション
@@ -191,7 +191,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
           </div>
         </div>
 
-        <div className="pt-1.5 flex flex-wrap items-center gap-2 text-xs">
+        <div className="pt-1 flex flex-wrap items-center gap-2 text-xs">
           <div className="flex items-center space-x-1.5 bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
             <Building2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
             <span className="text-[11px] text-slate-300">提案先店舗・企業名:</span>
@@ -219,9 +219,9 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
       </div>
 
       {/* 2. メインハイライト: 月あたりのコストシミュレーション */}
-      <div className="bg-white rounded-xl p-2.5 sm:p-3 border border-slate-200 shadow-xs page-break-inside-avoid">
+      <div className="bg-white rounded-xl p-2 sm:p-2.5 border border-slate-200 shadow-xs page-break-inside-avoid">
         <div>
-          <div className="flex items-center justify-between pb-1 border-b border-slate-100 mb-1.5">
+          <div className="flex items-center justify-between pb-1 border-b border-slate-100 mb-1">
             <div className="flex items-center space-x-1.5">
               <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
               <h3 className="font-black text-base sm:text-lg text-slate-900">
@@ -238,7 +238,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
           </div>
 
           {showRoiHelp && (
-            <div className="mb-2 p-2 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 space-y-1">
+            <div className="mb-1.5 p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600 space-y-0.5">
               <p>
                 <strong>計算条件:</strong> 月稼働 {monthlyDays}日 × 1日 {dailyBatches}回 ＝ 計 {monthlyBatches}回の冷却仕込み。
               </p>
@@ -254,32 +254,30 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
             </div>
           )}
 
-          {/* 月間コスト・削減額およびメリットカード群 (4カラム配置 & 縦幅コンパクト化) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2 mb-1.5">
+          {/* ★ 4カラムを常に横一列 (grid-cols-4) に固定 */}
+          <div className="grid grid-cols-4 gap-1 sm:gap-1.5 mb-1">
             {/* ① 導入コスト */}
-            <div className="p-1.5 sm:p-2 rounded-lg border-2 border-indigo-400 bg-gradient-to-br from-indigo-50/70 via-white to-indigo-100/60 flex flex-col justify-between shadow-2xs">
+            <div className="p-1 rounded-lg border-2 border-indigo-400 bg-gradient-to-br from-indigo-50/70 via-white to-indigo-100/60 flex flex-col justify-between shadow-2xs min-w-0">
               <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-black text-indigo-950 flex items-center gap-1">
-                    <Receipt className="w-3 h-3 text-indigo-600 shrink-0" />
-                    <span>導入コスト</span>
-                  </span>
-                </div>
-                <div className="mt-0.5 text-lg sm:text-xl font-black text-indigo-950 font-mono tracking-tight leading-tight">
+                <span className="text-[9.5px] sm:text-[10px] font-black text-indigo-950 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                  <Receipt className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-indigo-600 shrink-0" />
+                  <span>導入コスト</span>
+                </span>
+                <div className="mt-0.5 text-sm sm:text-base font-black text-indigo-950 font-mono tracking-tight leading-none whitespace-nowrap">
                   {addedCostMonth.toLocaleString()}
-                  <span className="text-[10px] font-bold ml-1 text-indigo-800 font-sans">円/月</span>
+                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-indigo-800 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-1 pt-0.5 border-t border-indigo-200/90 text-[10px] font-mono flex flex-col items-end">
-                <div className="grid grid-cols-[auto_1fr_auto] gap-x-1 items-center text-slate-600 w-full max-w-[150px]">
-                  <span className="text-left whitespace-nowrap">① レンタル料:</span>
+              <div className="mt-0.5 pt-0.5 border-t border-indigo-200/90 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
+                <div className="grid grid-cols-[auto_1fr_auto] gap-x-0.5 items-center text-slate-600 w-full">
+                  <span className="text-left whitespace-nowrap">① レンタル:</span>
                   <span className="text-right font-bold text-slate-800">{monthlyRentalYen.toLocaleString()}</span>
                   <span className="text-right text-slate-600">円</span>
                 </div>
-                <div className="grid grid-cols-[auto_1fr_auto] gap-x-1 items-center text-slate-600 w-full max-w-[150px] mt-0.5">
+                <div className="grid grid-cols-[auto_1fr_auto] gap-x-0.5 items-center text-slate-600 w-full">
                   <span className="text-left whitespace-nowrap flex items-center gap-0.5">
-                    <Zap className="w-2.5 h-2.5 text-amber-500" />
+                    <Zap className="w-2 h-2 text-amber-500" />
                     <span>② 電気代:</span>
                   </span>
                   <span className="text-right font-bold text-amber-700">{rotElecCostMonth.toLocaleString()}</span>
@@ -289,91 +287,90 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
             </div>
 
             {/* ② 水道代削減 */}
-            <div className="p-1.5 sm:p-2 rounded-lg border border-cyan-200 bg-cyan-50/60 flex flex-col justify-between">
+            <div className="p-1 rounded-lg border border-cyan-200 bg-cyan-50/60 flex flex-col justify-between min-w-0">
               <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold text-cyan-800 flex items-center gap-1">
-                    <Droplets className="w-3 h-3 text-cyan-600 shrink-0" />
-                    <span>水道料金削減</span>
-                  </span>
-                </div>
-                <div className="mt-0.5 text-lg sm:text-xl font-black text-cyan-900 font-mono leading-tight">
+                <span className="text-[9.5px] sm:text-[10px] font-bold text-cyan-800 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                  <Droplets className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-600 shrink-0" />
+                  <span>水道料金削減</span>
+                </span>
+                <div className="mt-0.5 text-sm sm:text-base font-black text-cyan-900 font-mono leading-none whitespace-nowrap">
                   ▲{waterSavingsMonth.toLocaleString()}
-                  <span className="text-[10px] font-bold ml-1 text-cyan-700 font-sans">円/月</span>
+                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-cyan-700 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-1 pt-0.5 border-t border-cyan-200/80 text-[10px] font-mono flex flex-col items-end">
-                <div className="grid grid-cols-[auto_1fr_auto] gap-x-1 items-center text-cyan-800 w-full max-w-[150px]">
-                  <span className="text-left whitespace-nowrap">月間水削減量:</span>
+              <div className="mt-0.5 pt-0.5 border-t border-cyan-200/80 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
+                <div className="grid grid-cols-[auto_1fr_auto] gap-x-0.5 items-center text-cyan-800 w-full">
+                  <span className="text-left whitespace-nowrap">月間水削減:</span>
                   <span className="text-right font-bold">{((sinkWater - rotWater) * monthlyBatches).toLocaleString()}</span>
                   <span className="text-right text-cyan-700">L</span>
                 </div>
-                <div className="text-[9.5px] text-cyan-700 leading-tight mt-0.5 text-right w-full">
-                  シンク{sinkWaterCostMonth.toLocaleString()}円 → QULIYA{rotWaterCostMonth.toLocaleString()}円
+                <div className="text-[8px] sm:text-[9px] text-cyan-700 leading-none mt-0.5 text-right w-full whitespace-nowrap overflow-hidden text-ellipsis">
+                  シンク{sinkWaterCostMonth.toLocaleString()}円→QULIYA{rotWaterCostMonth.toLocaleString()}円
                 </div>
               </div>
             </div>
 
             {/* ③ 人件費削減 */}
-            <div className="p-1.5 sm:p-2 rounded-lg border border-amber-200 bg-amber-50/60 flex flex-col justify-between">
+            <div className="p-1 rounded-lg border border-amber-200 bg-amber-50/60 flex flex-col justify-between min-w-0">
               <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-bold text-amber-800 flex items-center gap-1">
-                    <Timer className="w-3 h-3 text-amber-600 shrink-0" />
-                    <span>人件費削減</span>
-                  </span>
-                </div>
-                <div className="mt-0.5 text-lg sm:text-xl font-black text-amber-900 font-mono leading-tight">
+                <span className="text-[9.5px] sm:text-[10px] font-bold text-amber-800 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                  <Timer className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-600 shrink-0" />
+                  <span>人件費削減</span>
+                </span>
+                <div className="mt-0.5 text-sm sm:text-base font-black text-amber-900 font-mono leading-none whitespace-nowrap">
                   ▲{laborSavingsMonth.toLocaleString()}
-                  <span className="text-[10px] font-bold ml-1 text-amber-700 font-sans">円/月</span>
+                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-amber-700 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-1 pt-0.5 border-t border-amber-200/80 text-[10px] font-mono flex flex-col items-end">
-                <div className="grid grid-cols-[auto_1fr_auto] gap-x-1 items-center text-amber-800 w-full max-w-[150px]">
+              <div className="mt-0.5 pt-0.5 border-t border-amber-200/80 text-[8.5px] sm:text-[9.5px] font-mono flex flex-col items-end leading-tight">
+                <div className="grid grid-cols-[auto_1fr_auto] gap-x-0.5 items-center text-amber-800 w-full">
                   <span className="text-left whitespace-nowrap">拘束時間削減:</span>
                   <span className="text-right font-bold">▲{timeSavingsHoursMonth.toFixed(1)}</span>
-                  <span className="text-right text-amber-700">時間</span>
+                  <span className="text-right text-amber-700">h</span>
                 </div>
-                <div className="text-[9.5px] text-amber-700 leading-tight mt-0.5 text-right w-full">
-                  時給{hourlyWage.toLocaleString()}円 × 1回短縮{timeSavingsMinPerBatch}分
+                <div className="text-[8px] sm:text-[9px] text-amber-700 leading-none mt-0.5 text-right w-full whitespace-nowrap overflow-hidden text-ellipsis">
+                  時給{hourlyWage.toLocaleString()}円×短縮{timeSavingsMinPerBatch}分
                 </div>
               </div>
             </div>
 
             {/* ④ 純手残りメリット */}
-            <div className="p-1.5 sm:p-2 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/70 flex flex-col justify-between shadow-2xs">
+            <div className="p-1 rounded-lg border-2 border-emerald-500 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/70 flex flex-col justify-between shadow-2xs min-w-0">
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-black text-emerald-900 flex items-center gap-1">
-                    <Scale className="w-3 h-3 text-emerald-600 shrink-0" />
-                    <span>月間メリット</span>
+                  <span className="text-[9.5px] sm:text-[10px] font-black text-emerald-900 flex items-center gap-0.5 leading-none whitespace-nowrap overflow-hidden text-ellipsis">
+                    <Scale className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-emerald-600 shrink-0" />
+                    <span>月間純メリット</span>
+                  </span>
+                  <span className="text-[7.5px] sm:text-[8.5px] font-bold text-emerald-700 bg-emerald-100 px-0.5 py-0.2 rounded font-sans leading-none shrink-0">
+                    手残り
                   </span>
                 </div>
-                <div className="mt-0.5 text-lg sm:text-xl font-black text-emerald-800 font-mono tracking-tight flex items-baseline leading-tight">
+                <div className="mt-0.5 text-sm sm:text-base font-black text-emerald-800 font-mono tracking-tight flex items-baseline leading-none whitespace-nowrap">
                   {netSavingsMonth >= 0 ? `+${netSavingsMonth.toLocaleString()}` : `${netSavingsMonth.toLocaleString()}`}
-                  <span className="text-[10px] font-bold ml-1 text-emerald-950 font-sans">円/月</span>
+                  <span className="text-[8.5px] sm:text-[9.5px] font-bold ml-0.5 text-emerald-950 font-sans">円/月</span>
                 </div>
               </div>
 
-              <div className="mt-1 pt-0.5 border-t border-emerald-300/80 text-[9.5px] font-mono flex flex-col items-end">
-                <div className="text-[9.5px] text-emerald-800 font-semibold leading-tight text-right w-full">
+              <div className="mt-0.5 pt-0.5 border-t border-emerald-300/80 text-[8px] sm:text-[9px] font-mono flex flex-col items-end leading-tight">
+                <div className="text-[8px] sm:text-[9px] text-emerald-800 font-semibold leading-none text-right w-full whitespace-nowrap overflow-hidden text-ellipsis">
                   （水道＋人件費削減）
                 </div>
-                <div className="text-[9.5px] text-emerald-800 font-semibold leading-tight text-right w-full mt-0.5">
-                  ー 導入コスト（レンタル＋電気）
+                <div className="text-[8px] sm:text-[9px] text-emerald-800 font-semibold leading-none text-right w-full mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
+                  ー 導入コスト
                 </div>
               </div>
             </div>
           </div>
 
           {/* 年間換算バー */}
-          <div className="bg-slate-900 text-white rounded-lg px-2.5 py-1 flex flex-wrap items-center justify-between gap-1 text-xs">
-            <span className="text-slate-300 font-medium">
+          <div className="bg-slate-900 text-white rounded-lg px-2 py-1 flex flex-wrap items-center justify-between gap-1 text-xs">
+            <span className="text-slate-300 font-medium text-[11px]">
               年間インパクト（×12ヶ月換算）:
             </span>
-            <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 font-mono font-bold text-[11px]">
+            <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 font-mono font-bold text-[10.5px]">
               <span className="text-indigo-300">
                 導入コスト 年間 {(addedCostMonth * 12).toLocaleString()}円
               </span>
@@ -391,17 +388,17 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
         </div>
 
         {/* 試算条件の入力コントロール */}
-        <div className="mt-2 pt-1.5 border-t border-slate-200 bg-slate-50/70 -mx-2.5 -mb-2.5 sm:-mx-3 sm:-mb-3 p-2 rounded-b-xl space-y-1.5">
-          <div className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+        <div className="mt-1.5 pt-1 border-t border-slate-200 bg-slate-50/70 -mx-2 -mb-2 sm:-mx-2.5 sm:-mb-2.5 p-1.5 rounded-b-xl space-y-1">
+          <div className="text-[10.5px] font-bold text-slate-700 flex items-center justify-between">
             <span>お客様の稼働条件 ＆ 料金単価設定:</span>
-            <span className="text-[10px] text-slate-500 font-normal">
+            <span className="text-[9.5px] text-slate-500 font-normal">
               数値を変更すると即座に試算結果・グラフが連動します
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 text-xs font-mono">
             <div>
-              <label className="text-[10px] text-slate-600 block mb-0.5">1日の仕込み回数</label>
+              <label className="text-[9.5px] text-slate-600 block mb-0.5">1日の仕込み回数</label>
               <div className="flex items-center space-x-1">
                 <input
                   type="number"
@@ -410,14 +407,14 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                   step="1"
                   value={dailyBatches}
                   onChange={(e) => setDailyBatches(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full bg-white border border-slate-300 rounded px-2 py-0.5 text-xs font-bold text-slate-800 text-right"
+                  className="w-full bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 text-right"
                 />
                 <span className="text-slate-500 text-[10px]">回</span>
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-600 block mb-0.5">月間営業日数</label>
+              <label className="text-[9.5px] text-slate-600 block mb-0.5">月間営業日数</label>
               <div className="flex items-center space-x-1">
                 <input
                   type="number"
@@ -426,14 +423,14 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                   step="1"
                   value={monthlyDays}
                   onChange={(e) => setMonthlyDays(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-full bg-white border border-slate-300 rounded px-2 py-0.5 text-xs font-bold text-slate-800 text-right"
+                  className="w-full bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 text-right"
                 />
                 <span className="text-slate-500 text-[10px]">日</span>
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-600 block mb-0.5">QULIYAレンタル料</label>
+              <label className="text-[9.5px] text-slate-600 block mb-0.5">QULIYAレンタル料</label>
               <div className="flex items-center space-x-1">
                 <input
                   type="number"
@@ -442,14 +439,14 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                   step="1000"
                   value={monthlyRentalYen}
                   onChange={(e) => setMonthlyRentalYen(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full bg-white border border-slate-300 rounded px-2 py-0.5 text-xs font-bold text-indigo-700 text-right"
+                  className="w-full bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-indigo-700 text-right"
                 />
                 <span className="text-slate-500 text-[10px]">円</span>
               </div>
             </div>
 
             <div>
-              <label className="text-[10px] text-slate-600 block mb-0.5">スタッフ時給換算</label>
+              <label className="text-[9.5px] text-slate-600 block mb-0.5">スタッフ時給換算</label>
               <div className="flex items-center space-x-1">
                 <input
                   type="number"
@@ -458,17 +455,17 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                   step="50"
                   value={hourlyWage}
                   onChange={(e) => setHourlyWage(Math.max(0, parseInt(e.target.value) || 0))}
-                  className="w-full bg-white border border-slate-300 rounded px-2 py-0.5 text-xs font-bold text-slate-800 text-right"
+                  className="w-full bg-white border border-slate-300 rounded px-1.5 py-0.5 text-xs font-bold text-slate-800 text-right"
                 />
                 <span className="text-slate-500 text-[10px]">円</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-1 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-xs font-mono">
+          <div className="pt-1 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-1 text-xs font-mono">
             <div>
               <div className="flex items-center justify-between mb-0.5">
-                <label className="text-[10px] font-semibold text-blue-700">上水単価</label>
+                <label className="text-[9.5px] font-semibold text-blue-700">上水単価</label>
                 <span className="text-[9px] text-slate-400">円/m³</span>
               </div>
               <input
@@ -478,13 +475,13 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                 step="10"
                 value={supplyCost}
                 onChange={(e) => handleWaterSupplyChange(parseFloat(e.target.value) || 0)}
-                className="w-full bg-white border border-blue-200 rounded px-2 py-0.5 text-xs font-bold text-blue-900 text-right focus:border-blue-400 focus:outline-none"
+                className="w-full bg-white border border-blue-200 rounded px-1.5 py-0.5 text-xs font-bold text-blue-900 text-right focus:border-blue-400 focus:outline-none"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-0.5">
-                <label className="text-[10px] font-semibold text-cyan-800">下水単価</label>
+                <label className="text-[9.5px] font-semibold text-cyan-800">下水単価</label>
                 <span className="text-[9px] text-slate-400">円/m³</span>
               </div>
               <input
@@ -494,13 +491,13 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                 step="10"
                 value={drainCost}
                 onChange={(e) => handleWaterDrainChange(parseFloat(e.target.value) || 0)}
-                className="w-full bg-white border border-cyan-200 rounded px-2 py-0.5 text-xs font-bold text-cyan-900 text-right focus:border-cyan-400 focus:outline-none"
+                className="w-full bg-white border border-cyan-200 rounded px-1.5 py-0.5 text-xs font-bold text-cyan-900 text-right focus:border-cyan-400 focus:outline-none"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-0.5">
-                <label className="text-[10px] font-semibold text-amber-700 flex items-center gap-0.5">
+                <label className="text-[9.5px] font-semibold text-amber-700 flex items-center gap-0.5">
                   <Zap className="w-2.5 h-2.5 text-amber-500" />
                   <span>電気単価</span>
                 </label>
@@ -513,7 +510,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
                 step="1"
                 value={electricityCostPerKwh}
                 onChange={(e) => handleElectricityCostChange(parseFloat(e.target.value) || 0)}
-                className="w-full bg-white border border-amber-200 rounded px-2 py-0.5 text-xs font-bold text-amber-900 text-right focus:border-amber-400 focus:outline-none"
+                className="w-full bg-white border border-amber-200 rounded px-1.5 py-0.5 text-xs font-bold text-amber-900 text-right focus:border-amber-400 focus:outline-none"
               />
             </div>
           </div>
@@ -521,8 +518,8 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
       </div>
 
       {/* 3. 1回あたりの冷却時間＆コスト対比 */}
-      <div className="bg-white rounded-xl p-2.5 sm:p-3 border border-slate-200 shadow-xs page-break-inside-avoid">
-        <div className="flex items-center justify-between pb-1 border-b border-slate-100 mb-1.5">
+      <div className="bg-white rounded-xl p-2 sm:p-2.5 border border-slate-200 shadow-xs page-break-inside-avoid">
+        <div className="flex items-center justify-between pb-1 border-b border-slate-100 mb-1">
           <div className="flex items-center space-x-1.5">
             <Timer className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 shrink-0" />
             <h3 className="font-black text-base sm:text-lg text-slate-900">
@@ -534,7 +531,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2">
           {/* ① QULIYA式 */}
           <div className="p-2 sm:p-2.5 rounded-lg border-2 border-cyan-500 bg-gradient-to-b from-white via-cyan-50/40 to-cyan-50/80 flex flex-col justify-between shadow-2xs">
             <div>
@@ -731,7 +728,7 @@ export const SalesSummaryMode: React.FC<SalesSummaryModeProps> = ({
               </div>
 
               <div className="mt-0.5 pt-0.5 border-t border-slate-200 text-[9.5px] font-sans leading-tight">
-                <span className="font-bold text-slate-700 whitespace-nowrap">衛生・運用の留意点</span>
+                <span className="font-bold text-slate-700 whitespace-nowrap">衛生・運用上の留意点</span>
                 <p className="text-[9px] text-slate-500 leading-tight mt-0.5">
                   約1.5時間流水放置。菌増殖リスク最大・水道水を大量浪費
                 </p>
